@@ -458,6 +458,9 @@ public class Game_Window extends JPanel{
 				while(!rows.isEmpty()) {
 					String[] tokens = rows.pop().split(",");
 					int[] row = new int[tokens.length];
+					for(int i = 0; i < tokens.length; i++) {
+						row[i] = Integer.parseInt(tokens[i]);
+					}
 				}
 			} catch (Exception e) {
 				return null;
