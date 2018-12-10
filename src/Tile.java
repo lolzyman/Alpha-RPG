@@ -12,19 +12,6 @@ public class Tile {
 	public Tile() {
 
 	}
-	public void addImageSet(int imageIndex, BufferedImage targetImage) {
-		if(images.length <= imageIndex) {
-			BufferedImage[] newArray = new BufferedImage[(images.length)*2];
-			for(int i = 0; i < imageIndex; i++) {
-				newArray[i] = images[i];
-			}
-			images = newArray;
-		}
-		images[imageIndex] = targetImage;
-	}
-	public void draw(Graphics2D g2) {
-	}
-	
 	public boolean addImageSet(BufferedImage mapTileSet, String...strings) {
 		int i = 0;
 		boolean succesful = true;

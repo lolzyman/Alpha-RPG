@@ -17,19 +17,6 @@ public class FileManager {
 			return null;
 		}
 	}
-	public static BufferedImage loadTileFromIndex(String imageLocation, int index) {
-		BufferedImage image = loadImage(imageLocation);
-		BufferedImage subImage;
-		if(image != null) {
-			int columns = (int)Math.floor(image.getWidth() / 50);
-			int imageColumn = index % columns;
-			int imageRow = (index - imageColumn) / columns;
-			subImage = image.getSubimage(imageColumn * 50, imageRow * 50, 50, 50);
-			return subImage;
-		}else {
-			return null;
-		}
-	}
 	public static BufferedImage loadTileFromIndex(BufferedImage image, int index) {
 		BufferedImage subImage;
 		if(image != null) {
