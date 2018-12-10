@@ -2,14 +2,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Stack;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 public class Game_Window extends JPanel{
@@ -17,153 +11,98 @@ public class Game_Window extends JPanel{
 	/**
 	 * 
 	 */
+	// This is the serialID for the user. It normally isn't useful but I have needed it before and it removes warning
 	private static final long serialVersionUID = 1L;
+	
+	// This is the Character that has the ability to walk around the map
 	private Character me = new Character(1,1);
+	
+	// This is the terrainMap which has the background tiles.
 	private Tile[][] terrainMap;
+	
+	// This is the screen offset which allows the screen to follow the character around the map and only have to draw the 121 tiles
 	private int screenX = 6, screenY = 6;
-	private WheatFarm[] wheatFarms = new WheatFarm[2];
-	private int wheatFarmIndex = 0;
-	private BufferedImage background = null;
-	public Game_Window(int keyArray) {
-		this.setSize(10000,10000);
+	
+	// This is a obsolete Image for the map tile set. This will be handled in the FileManager when loading the map
+	private BufferedImage mapTileSet;
+	
+	// This is a constructor that accepts a stack of keys. This is passed from the creating window.
+	// The keyArray stack is used to process key inputs only once and is a work around for handling inputs at a specified rate
+	// The work around is used because I don't know how to use the KeyboardListener as interrupts 
+	public Game_Window(Stack<?> keyArray) {
+		//Sets the JPanel to be an 11 by 11 tile size with 50 by 50 pixel tiles
+		this.setSize(550,550);
+		//Sets the JPanel as visible
 		this.setVisible(true);
+		// Loads the Terrain Map from a default condition. Will need to be modified to load previous saves.
 		initTerrainMap();
-		background = FileLoader.loadImage("Resources/Working Map 1.png");
+		// Repaints the JPanel
 		repaint();
 	}
 	@Override
 	public void paint(Graphics g) {
+		// Calls the parent paint to prevent errors
 		super.paint(g);
+		// Converts the normal Graphics to Graphics2D which I know how to work with best
 		Graphics2D g2 = (Graphics2D)g;
-		//Draws Background
+		// Draws Background
 		g2.setColor(Color.GREEN);
+		// Draws a Green background so I know when tiles are not being drawn
 		g2.fillRect(0, 0, 550, 550);
 
-		//Draws the Terrain
-		if(background != null) {
-			drawBackground(g2);
-		}else {
-			drawTerrainMap(g2, screenX, screenY);
-		}
-		for(WheatFarm farm: wheatFarms) {
-			if(farm != null) {
-				farm.drawFarm(g2, screenX, screenY);
-			}
-		}
+		// Draws the background based on the Tile Map
+		drawTerrainMap(g2, screenX, screenY);
 		
+		// Draws the Character on the Map
+		// This will need to be changed to draw all the entities that can roam the map
 		me.paint(g2, screenX, screenY);
 		
-		//Draws a shop menu
-		if(me.getTile() instanceof Shop) {
-			g2.setColor(new Color(0,0,0,256/2 - 1));
-			g2.fillRect(0, 0, 500, 500);
+	}
+	
+	// initializes the terrain map from a default File. This will need to be modified to be loaded from a save file
+	public void initTerrainMap() {
+		// Calls to the FileManager Class to get a Tile[][] of the level Map1
+		terrainMap = FileManager.loadTerrainmap("Map1");
+	}
+	
+	// Method to drawing the background based on the Terrain Map
+	public void drawTerrainMap(Graphics2D g2, int x, int y) {
+		// For loop to step through 11 Columns
+		for(int i = 0; i < 11; i++) {
+			// For loop to step through 11 Rows
+			for(int j = 0; j < 11; j++) {
+				// Checks to make sure the Tile isn't null. This will happen if areas of the map are not interactable and the creater
+				// Didn't bother to create a Tile class for it
+				if(terrainMap[y + j - 6][x + i - 6] != null) {
+					// Calls a Method from Tile that draws the tile based on screen location
+					terrainMap[y + j - 6][x + i - 6].drawTile(g2, i, j);
+				}
+			}
+		}
+	}
+	// Method that handles character interactions with a tile. Currently not used
+	public void interactWithTile() {
+		@SuppressWarnings("unused")
+		int x = me.xPos;
+		@SuppressWarnings("unused")
+		int y = me.yPos;
+	}
+	// Method that the thread handles game updates. Takes the same keyArray as the constructor. Runs a switch statement for handling
+	// key actions
+	public void updateGame(double currentFPS, Stack<Integer> keyArray) {
+		//Handles Key Events
+		
+		// key is the value of the top keyCode on the stack
+		// If the stack is empty the value is set to -1 and the statement handles accordingly
+		int key;
+		if(keyArray.isEmpty()) {
+			key = -1;
+		}else {
+			key = (int)keyArray.pop();
 		}
 		
-	}
-	public void drawBackground(Graphics2D g2) {
-		g2.drawImage(background, (6 - screenX)*50, (6 - screenY) * 50,null);
-	}
-	public void initTerrainMap() {
-		Tile[][] beta = FileLoader.loadTerrainmap("Resources/Working Map 1.csv");
-		int[][] map = {	{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-						{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
-		Tile[][] terrain = new Tile[map.length][];
-		for(int i = 0; i < map.length; i++) {
-			terrain[i] = new Tile[map[i].length];
-			for(int j = 0; j < map[i].length; j++) {
-				switch(map[i][j]) {
-				case 0:
-					terrain[i][j] = new Grass();
-					break;
-				case 1:
-					terrain[i][j] = new Wall();
-					break;
-				case 2:
-					terrain[i][j] = new Gold();
-					break;
-				case 3:
-					terrain[i][j] = new WheatFarm(i, j);
-					break;
-				case 4:
-					terrain[i][j] = new Shop();
-					break;
-				}
-			}
-		}
-		terrainMap = terrain;
-	}
-
-	public void drawTerrainMap(Graphics2D g2, int x, int y) {
-		for(int i = 0; i < 11; i++) {
-			for(int j = 0; j < 11; j++) {
-				if(terrainMap[y + j - 6][x + i - 6] != null) {
-					switch(terrainMap[y + j - 6][x + i - 6].type) {
-					case 0:
-						//This is an empty tile
-						break;
-					case 1:
-						// This is the tile for the default wall tile
-						g2.setColor(Color.black);
-						g2.fillRect(i*50, j*50, 50, 50);
-						break;
-					case 2:
-						// This is the tile for Gold
-						g2.setColor(Color.YELLOW);
-						g2.fillRect(i*50, j*50, 50, 50);
-						break;
-					case 3:
-						// This is the Default tile for a wheatFarm
-						g2.setColor(Color.DARK_GRAY);
-						g2.fillRect(i*50, j*50, 50, 50);
-						break;
-					case 4:
-						g2.setColor(Color.red);
-						g2.fillRect(i*50, j*50, 50, 50);
-						break;
-					}
-				}
-			}
-		}
-	}
-	public void interactWithTile() {
-		int x = me.xPos;
-		int y = me.yPos;
-
-		switch(terrainMap[y][x].type) {
-		case 2:
-			terrainMap[y][x].type = 0;
-			me.gold++;
-			System.out.println("The player has " + me.gold + " gold!");
-			break;
-		case 3:
-			WheatFarm farm = (WheatFarm)terrainMap[y][x];
-			me.wheat +=  farm.wheat;
-			farm.wheat = 0;
-			System.out.println("The player has " + me.wheat + " wheat!");
-			break;
-		}
-	}
-	public void updateGame(double currentFPS, int keyarray) {
-		//Handles Key Events
-
-		switch(keyarray) {
+		//keyCodes 37, 38, 39, 40 are the arrow keys. The Switch statement tells the character to move left, right, up or down.
+		switch(key) {
 		case 37:
 			me.moveLeft();
 			moveScreen();
@@ -180,36 +119,14 @@ public class Game_Window extends JPanel{
 			me.moveDown();
 			moveScreen();
 			break;
-		case 66:
-			buildWheatFarm();
 		default:
 			break;
 		}
+		// Updates the visuals for the game
 		repaint();
-
 	}
-	public void loadLevel() {
-		
-	}
-	public void updateMovement() {
-		me.clearMove();
-		moveScreen();
-		int updated = 0;
-		for(WheatFarm farm: wheatFarms) {
-			if(farm != null) {
-				farm.updateFarm(1);
-				updated++;
-			}
-		}
-	}
-	public void buildWheatFarm() {
-		int x = me.xPos;
-		int y = me.yPos;
-		if(terrainMap[y][x] instanceof Grass) {
-			terrainMap[y][x] = addWheatFarm(wheatFarmIndex, x, y);
-			wheatFarmIndex++;
-		}
-	}
+	
+	// moves the screen to center on the character if possible
 	public void moveScreen() {
 		int x = me.xPos;
 		int y = me.yPos;
@@ -229,244 +146,70 @@ public class Game_Window extends JPanel{
 		}
 	}
 	
-	public WheatFarm addWheatFarm(int index, int x, int y) {
-		if(wheatFarms.length == index) {
-			WheatFarm[] newArray = new WheatFarm[(index)*2];
-			for(int i = 0; i < index; i++) {
-				newArray[i] = wheatFarms[i];
-			}
-			WheatFarm newFarm = new WheatFarm(x, y);
-			newArray[index] = newFarm;
-			wheatFarms = newArray;
-			return newFarm;
-		}
-		WheatFarm newFarm = new WheatFarm(x, y);
-		wheatFarms[index] = newFarm;
-		return newFarm;
-	}
-
+	// Embedded Class for the Character In the Game
 	private class Character {
+		// Character Sizes. Irrelavent for future implementations
 		private final int XSIZE = 50, YSIZE = 50;
+		
+		// The position of the character in the game
 		private int xPos, yPos;
-		private boolean moved = false;
-		private int gold = 0;
-		private int wheat = 0;
-	
-	
-	
+		
+		// The Image for the Character
+		private BufferedImage me;
+
+		// Constructor for the character that starts at the given map location
 		public Character(int x, int y){
+			// Calls a method to set the location
 			setLocation(x, y);
+			
+			// Tries to load an image for the character 
+			me = FileManager.loadTileFromIndex(mapTileSet, 3);
 		}
-		public int[] getLocation() {
-			int[] local = {xPos, yPos};
-			return local;
-		}
+		// Paint method for the Character
+		// Not to be confused with the paint method associated with JPanels and JFrames
 		public void paint(Graphics2D g2, int x, int y) {
-			g2.setColor(Color.GRAY);
-			g2.fillOval((xPos - x + 6)*50, (yPos - y + 6)*50, XSIZE, YSIZE);
-	
+			
+			// If the Character has an image, draw it at the location, if it doesn't draw a gray sphere
+			if(me != null) {
+				g2.drawImage(me, (xPos - x + 6)*50, (yPos - y + 6)*50, null);
+			}else{
+				g2.setColor(Color.GRAY);
+				g2.fillOval((xPos - x + 6)*50, (yPos - y + 6)*50, XSIZE, YSIZE);
+			}
 		}
-		public Tile getTile() {
-			return terrainMap[yPos][xPos];
-		}
+
+		// Method to set the location of the Character on the Map
 		public void setLocation(int x, int y) {
 			xPos = x;
 			yPos = y;
 		}
-		public void clearMove() {
-			moved = false;
-		}
+		// Method to try and move the character to the north
 		public void moveUp() {
-			if(!moved) {
-				if(terrainMap[yPos - 1][xPos].walkAble) {
-					yPos--;
-					interactWithTile();
-					moved = true;
-				}
+			if(terrainMap[yPos - 1][xPos].walkAble) {
+				yPos--;
+				interactWithTile();
 			}
-	
 		}
+		// Method to try and move the character to the south
 		public void moveDown() {
-			if(!moved) {
-				if(terrainMap[yPos + 1][xPos].walkAble) {
-					yPos++;
-					interactWithTile();
-					moved = true;
-				}
+			if(terrainMap[yPos + 1][xPos].walkAble) {
+				yPos++;
+				interactWithTile();
 			}
 		}
+		// Method to try and move the character to the east
 		public void moveRight() {
-			if(!moved) {
-				if(terrainMap[yPos][xPos + 1].walkAble) {
-					xPos++;
-					interactWithTile();
-					moved = true;
-				}
+			if(terrainMap[yPos][xPos + 1].walkAble) {
+				xPos++;
+				interactWithTile();
 			}
 		}
+		// Method to try and move the character to the west
 		public void moveLeft() {
-			if(!moved) {
-				if(terrainMap[yPos][xPos - 1].walkAble) {
-					xPos--;
-					interactWithTile();
-					moved = true;
-				}
+			if(terrainMap[yPos][xPos - 1].walkAble) {
+				xPos--;
+				interactWithTile();
 			}
 		}
 	}
-
-	private class Item{
-		
-	}
-
-	private class Tile {
-		public int type = 0;
-		public boolean walkAble = false;
-		public Tile() {
-	
-		}
-	}
-
-	private class Inventory {
-		private int gold = 0;
-		
-		private int wheat = 100;
-		private int wheatSellPrice = 10;
-		private int wheatBuyPrice = 5;
-		
-		private int forestSeed = 100;
-		private int forestSeedSellPrice = 50;
-		private int forestSeedBuyPrice = 50;
-		
-		private int wood = 100;
-		private int woodSellPrice = 40;
-		private int woodBuyPrice = 20;
-		
-		public Inventory() {
-			
-		}
-		public boolean sellWheat(int quantity) {
-			if(wheat >= quantity) {
-				wheat -= quantity;
-				gold += quantity * wheatSellPrice;
-				return true;
-			}
-			return false;
-		}
-		public int getWheatSellPrice() {
-			return wheatSellPrice;
-		}
-		public int getWheatBuyPrice() {
-			return wheatBuyPrice;
-		}
-		public boolean buyWheat(int quantity) {
-			if(gold >= quantity * wheatBuyPrice) {
-				gold -= quantity * wheatBuyPrice;
-				wheat += quantity;
-				return true;
-			}
-			return false;
-			
-		}
-		public void buyWheat() {
-			
-		}
-		public void sellForestSeed() {
-			
-		}
-		public void buyForestSeed() {
-			
-		}
-	}
-
-	private class Grass extends Tile {
-		public Grass() {
-			this.type = 0;
-			this.walkAble = true;
-		}
-	}
-
-	private class Gold extends Tile{
-		private int value = 0;
-		public Gold() {
-			this.type = 2;
-			this.walkAble = true;
-		}
-	}
-	private class Wall extends Tile{
-		private int value = 0;
-		public Wall() {
-			this.type = 1;
-			this.walkAble = false;
-		}
-	}
-	private class WheatFarm extends Tile{
-		private int wheat = 0;
-		private int maxWheat = 50;
-		private int xPos;
-		private int yPos;
-
-		public WheatFarm(int x, int y) {
-			this.type = 3;
-			this.walkAble = true;
-			xPos = x;
-			yPos = y;
-		}
-		public void updateFarm(int i) {
-			for(;i > 0;i--) {
-				if(wheat < maxWheat)wheat++;
-			}
-		}
-		public void drawFarm(Graphics2D g2, int x, int y) {
-			g2.setColor(new Color(255,255,0,255/maxWheat*wheat));
-			g2.fillRect((xPos - x + 6)*50, (yPos - y + 6)*50, 50, 50);
-		}
-	}
-	private class Shop extends Tile{
-		private Inventory shopInventory = new Inventory();
-		
-		public Shop() {
-			this.walkAble = true;
-			this.type = 4;
-			shopInventory.gold = 500;
-		}
-	}
-	private class Forest extends Tile{
-
-	}
-	private static class FileLoader {
-
-		
-		public static BufferedImage loadImage(String location) {
-			try {
-				return ImageIO.read(new File(location));
-			} catch (IOException e) {
-				return null;
-			}
-		}
-		public static Tile[][] loadTerrainmap(String location){
-			Tile[][] loadedMatrix;
-			Stack<String> rows= new Stack();
-			try {
-				String line;
-				BufferedReader fileReader = new BufferedReader(new FileReader(location));
-				while((line = fileReader.readLine()) != null) {
-					rows.add(line);
-					System.out.println("The size of Stack is: " + rows.size());
-				}
-				loadedMatrix = new Tile[rows.size()][];
-				while(!rows.isEmpty()) {
-					String[] tokens = rows.pop().split(",");
-					int[] row = new int[tokens.length];
-					for(int i = 0; i < tokens.length; i++) {
-						row[i] = Integer.parseInt(tokens[i]);
-					}
-				}
-			} catch (Exception e) {
-				return null;
-			}
-			return null;
-		}
-	}
-
 }

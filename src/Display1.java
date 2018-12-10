@@ -1,11 +1,9 @@
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Stack;
 
 import javax.swing.JFrame;
 
@@ -16,9 +14,8 @@ public class Display1 extends JFrame{
 	 */
 	private static final long serialVersionUID = 8512897098475110795L;
 	private int targetFPS = 60;
-	private int keyArray = -1;
+	private Stack<Integer> keyArray = new Stack<Integer>();
 	private Game_Window game = new Game_Window(keyArray);
-	//	private Enviornment game = new Enviornment(keyArray);
 	private Menu_Window menu = new Menu_Window();
 
 	public Display1() {
@@ -33,7 +30,6 @@ public class Display1 extends JFrame{
 		Thread test = new Thread() {
 			long time = System.currentTimeMillis();
 			public void run() {
-				int frames = 0;
 				double currentFPS = 0;
 
 				while(true) {
@@ -53,7 +49,6 @@ public class Display1 extends JFrame{
 					while(currentTime - time < 1000 / targetFPS) {
 						currentTime = System.currentTimeMillis();
 					}
-					frames++;
 					currentFPS = 1000 / (currentTime - time);
 					time = currentTime;
 				}
@@ -65,13 +60,6 @@ public class Display1 extends JFrame{
 	public void switchToGame() {
 		this.setContentPane(game);
 		repaint();
-	}
-	@Override
-	public void paint(Graphics g) {
-		super.paint(g);
-		Graphics2D g2 = (Graphics2D) g;
-		//Work around to always paint the game panel
-		//		game.draw(g);
 	}
 	public Point getLocal() {
 		return this.getLocationOnScreen();
@@ -86,9 +74,6 @@ public class Display1 extends JFrame{
 			this.setContentPane(game);
 			return;
 		}
-	}
-	public int getKeyArray(){
-		return keyArray;
 	}
 	public void print(Object obj) {
 
@@ -112,7 +97,7 @@ public class Display1 extends JFrame{
 
 		@Override
 		public void mousePressed(MouseEvent arg0) {
-			//			System.out.println("This Program is a seperate thread");
+			//			System.out.println("This Program is a separate thread");
 			//			game.setMouseSampling(true);
 
 		}
@@ -129,16 +114,12 @@ public class Display1 extends JFrame{
 
 		@Override
 		public void keyPressed(KeyEvent arg0) {
-			if(keyArray == -1) keyArray = arg0.getKeyCode();
-
+			keyArray.add(arg0.getKeyCode());
 		}
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
-			if(keyArray == arg0.getKeyCode()) {
-				keyArray = -1;
-				game.updateMovement();
-			}
+			keyArray.remove(new Integer(arg0.getKeyCode()));
 //			System.out.println(arg0.getKeyCode());
 
 		}
