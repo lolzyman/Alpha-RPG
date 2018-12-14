@@ -1,7 +1,6 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.util.Stack;
 
 import javax.swing.JPanel;
@@ -23,21 +22,31 @@ public class Game_Window extends JPanel{
 	// This is the screen offset which allows the screen to follow the character around the map and only have to draw the 121 tiles
 	private int screenX = 6, screenY = 6;
 	
-	// This is a obsolete Image for the map tile set. This will be handled in the FileManager when loading the map
-	private BufferedImage mapTileSet;
+	private String targetMap;
 	
 	// This is a constructor that accepts a stack of keys. This is passed from the creating window.
 	// The keyArray stack is used to process key inputs only once and is a work around for handling inputs at a specified rate
 	// The work around is used because I don't know how to use the KeyboardListener as interrupts 
-	public Game_Window(Stack<?> keyArray) {
+	public Game_Window(String mapName) {
+		
+		//Sets the targetMap to the mapName passed to the constructor
+		targetMap = mapName;
+		
 		//Sets the JPanel to be an 11 by 11 tile size with 50 by 50 pixel tiles
 		this.setSize(550,550);
 		//Sets the JPanel as visible
 		this.setVisible(true);
 		// Loads the Terrain Map from a default condition. Will need to be modified to load previous saves.
 		initTerrainMap();
+		
+		exploreVision();
 		// Repaints the JPanel
 		repaint();
+		
+		Item testKey = new Item();
+		testKey.setType(Item.KEY);
+		testKey.setID("Door1");
+		terrainMap[2][1].getInventory().addItem(testKey);
 	}
 	@Override
 	public void paint(Graphics g) {
@@ -50,6 +59,9 @@ public class Game_Window extends JPanel{
 		// Draws a Green background so I know when tiles are not being drawn
 		g2.fillRect(0, 0, 550, 550);
 
+		//Makes the character look around the map
+		//exploreVision();
+		
 		// Draws the background based on the Tile Map
 		drawTerrainMap(g2, screenX, screenY);
 		
@@ -62,7 +74,11 @@ public class Game_Window extends JPanel{
 	// initializes the terrain map from a default File. This will need to be modified to be loaded from a save file
 	public void initTerrainMap() {
 		// Calls to the FileManager Class to get a Tile[][] of the level Map1
-		terrainMap = FileManager.loadTerrainmap("Map1");
+		terrainMap = FileManager.loadTerrainmap(targetMap);
+		if(terrainMap == null) {
+			TerrainGenerator.createDefaultMap(targetMap);
+			terrainMap = FileManager.loadTerrainmap(targetMap);
+		}
 	}
 	
 	// Method to drawing the background based on the Terrain Map
@@ -80,15 +96,90 @@ public class Game_Window extends JPanel{
 			}
 		}
 	}
-	// Method that handles character interactions with a tile. Currently not used
-	public void interactWithTile() {
-		@SuppressWarnings("unused")
-		int x = me.xPos;
-		@SuppressWarnings("unused")
-		int y = me.yPos;
+	// Method that handles character interactions with a tile.	
+	public void interactWithTile(int xOffset, int yOffset) {
+		int x = me.getxPos() + xOffset;
+		int y = me.getyPos() + yOffset;
+		if(terrainMap[y][x] instanceof Portal) {
+			Portal portal = (Portal)terrainMap[y][x];
+			loadMap(portal.getTargetMap());
+		}
+		terrainMap[y][x].interact(me);
+	}
+	public void loadMap(String targetMap) {
+		me.setLocation(1, 1);
+		this.targetMap = targetMap;
+		this.initTerrainMap();
+		screenX = 6;
+		screenY = 6;
+		repaint();
+	}
+	
+	public void exploreVision() {
+ 		int x = me.getxPos();
+		int y = me.getyPos();
+		
+		terrainMap[y][x].setSeen();
+		
+		//Look left
+		int distance = 0;
+		do {
+			distance++;
+			terrainMap[y][x - distance].setSeen();
+		}while(terrainMap[y][x - distance].getTransparent() && distance < 5);
+		
+		//Look down
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y + distance][x].setSeen();
+		}while(terrainMap[y + distance][x].getTransparent() && distance < 5);
+
+		//Look right
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y][x + distance].setSeen();
+		}while(terrainMap[y][x + distance].getTransparent() && distance < 5);
+
+		//Look up
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y - distance][x].setSeen();
+		}while(terrainMap[y - distance][x].getTransparent() && distance < 5);
+		
+		//Look up and right
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y - distance][x + distance].setSeen();
+		}while(terrainMap[y - distance][x + distance].getTransparent() && distance < 2);
+		
+		//Look up and left
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y - distance][x - distance].setSeen();
+		}while(terrainMap[y - distance][x - distance].getTransparent() && distance < 2);
+
+		//Look down and right
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y + distance][x + distance].setSeen();
+		}while(terrainMap[y + distance][x + distance].getTransparent() && distance < 2);
+
+		//Look down and left
+		distance = 0;
+		do {
+			distance++;
+			terrainMap[y + distance][x - distance].setSeen();
+		}while(terrainMap[y + distance][x - distance].getTransparent() && distance < 2);
+
 	}
 	// Method that the thread handles game updates. Takes the same keyArray as the constructor. Runs a switch statement for handling
-	// key actions
+	// key actions 
 	public void updateGame(double currentFPS, Stack<Integer> keyArray) {
 		//Handles Key Events
 		
@@ -104,21 +195,34 @@ public class Game_Window extends JPanel{
 		//keyCodes 37, 38, 39, 40 are the arrow keys. The Switch statement tells the character to move left, right, up or down.
 		switch(key) {
 		case 37:
-			me.moveLeft();
+			if(!me.moveLeft(terrainMap)) {
+				interactWithTile(-1,0);
+			}
 			moveScreen();
 			break;
 		case 38:
-			me.moveUp();
+			if(!me.moveUp(terrainMap)){
+				interactWithTile(0,-1);
+			}
 			moveScreen();
 			break;
 		case 39:
-			me.moveRight();
+			if(!me.moveRight(terrainMap)) {
+				interactWithTile(1,0);
+			}
 			moveScreen();
 			break;
 		case 40:
-			me.moveDown();
+			if(!me.moveDown(terrainMap)) {
+				interactWithTile(0,1);
+			}
 			moveScreen();
 			break;
+		case 83:
+			FileManager.saveTerrainMap(terrainMap, targetMap);
+			System.exit(0);
+		case 32:
+			interactWithTile(0,0);
 		default:
 			break;
 		}
@@ -128,88 +232,22 @@ public class Game_Window extends JPanel{
 	
 	// moves the screen to center on the character if possible
 	public void moveScreen() {
-		int x = me.xPos;
-		int y = me.yPos;
+		int x = me.getxPos();
+		int y = me.getyPos();
 		if(x < 6) {
 			screenX = 6;
 		}else if(x > terrainMap[y].length - 6) {
 			screenX = terrainMap[y].length - 5;
 		}else {
-			screenX = me.xPos + 1;
+			screenX = x + 1;
 		}
 		if(y < 6) {
 			screenY = 6;
 		}else if(y > terrainMap.length - 6) {
 			screenY = terrainMap.length - 5;
 		}else {
-			screenY = me.yPos + 1;
+			screenY = y + 1;
 		}
-	}
-	
-	// Embedded Class for the Character In the Game
-	private class Character {
-		// Character Sizes. Irrelavent for future implementations
-		private final int XSIZE = 50, YSIZE = 50;
-		
-		// The position of the character in the game
-		private int xPos, yPos;
-		
-		// The Image for the Character
-		private BufferedImage me;
-
-		// Constructor for the character that starts at the given map location
-		public Character(int x, int y){
-			// Calls a method to set the location
-			setLocation(x, y);
-			
-			// Tries to load an image for the character 
-			me = FileManager.loadTileFromIndex(mapTileSet, 3);
-		}
-		// Paint method for the Character
-		// Not to be confused with the paint method associated with JPanels and JFrames
-		public void paint(Graphics2D g2, int x, int y) {
-			
-			// If the Character has an image, draw it at the location, if it doesn't draw a gray sphere
-			if(me != null) {
-				g2.drawImage(me, (xPos - x + 6)*50, (yPos - y + 6)*50, null);
-			}else{
-				g2.setColor(Color.GRAY);
-				g2.fillOval((xPos - x + 6)*50, (yPos - y + 6)*50, XSIZE, YSIZE);
-			}
-		}
-
-		// Method to set the location of the Character on the Map
-		public void setLocation(int x, int y) {
-			xPos = x;
-			yPos = y;
-		}
-		// Method to try and move the character to the north
-		public void moveUp() {
-			if(terrainMap[yPos - 1][xPos].walkAble) {
-				yPos--;
-				interactWithTile();
-			}
-		}
-		// Method to try and move the character to the south
-		public void moveDown() {
-			if(terrainMap[yPos + 1][xPos].walkAble) {
-				yPos++;
-				interactWithTile();
-			}
-		}
-		// Method to try and move the character to the east
-		public void moveRight() {
-			if(terrainMap[yPos][xPos + 1].walkAble) {
-				xPos++;
-				interactWithTile();
-			}
-		}
-		// Method to try and move the character to the west
-		public void moveLeft() {
-			if(terrainMap[yPos][xPos - 1].walkAble) {
-				xPos--;
-				interactWithTile();
-			}
-		}
+		exploreVision();
 	}
 }

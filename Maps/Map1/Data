@@ -1,6 +1,3 @@
-0:Wall:0:0,0
-1:Door:1,4:0,1
-2:Wall:2:0,1
-3:Wall:3:0,1
-4:Door:1,4:1,0
-5:Wall:5:0,1
+7,11:TestItem:key,Door1
+5,10:TestDoor:Door0,unlocked
+4,13:TestDoor:Door1,locked

@@ -1,0 +1,23 @@
+So this is going to be a paper trail for how the code was created so that when I come back to this years 
+later I can remember what was done
+
+This will just be a list of how
+
+* Created the Game processing loop
+* Created the map
+* got player movement
+* tried out tile interaction
+* generated a Default Map
+* created Loading of the Maps
+* created rudimentary Vision field
+* Created Saving
+* Created Game Start Up Menu
+* Created A way to load Desired Map
+* Modified Saving
+* Got the player to interact with doors
+* Got fail safe on drawing tiles with no images
+* Got diagonal looks
+* created Item Class
+* created Inventory Class
+* created a Key to open a door
+* got the key to open the door

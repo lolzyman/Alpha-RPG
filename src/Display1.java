@@ -1,10 +1,14 @@
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.Stack;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 public class Display1 extends JFrame{
@@ -15,7 +19,7 @@ public class Display1 extends JFrame{
 	private static final long serialVersionUID = 8512897098475110795L;
 	private int targetFPS = 60;
 	private Stack<Integer> keyArray = new Stack<Integer>();
-	private Game_Window game = new Game_Window(keyArray);
+	private Game_Window game;
 	private Menu_Window menu = new Menu_Window();
 
 	public Display1() {
@@ -25,8 +29,21 @@ public class Display1 extends JFrame{
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.addMouseListener(new listener());
 		this.addKeyListener(new boardListener());
+		this.setFocusable(true);
 		this.setLocation(0, 0);
-		//		this.setLocationRelativeTo(null);
+		this.setContentPane(menu);
+		setupMenuListeners();
+	}
+	public void switchToGame() {
+		this.remove(menu);
+		this.setContentPane(game);
+		this.requestFocus();
+		repaint();
+	}
+	public Point getLocal() {
+		return this.getLocationOnScreen();
+	}
+	public void initiateGameLogic() {
 		Thread test = new Thread() {
 			long time = System.currentTimeMillis();
 			public void run() {
@@ -34,10 +51,8 @@ public class Display1 extends JFrame{
 
 				while(true) {
 					// this area is going to be used to create the game
-
 					if(getContentPane() == game) {
 						game.updateGame(currentFPS, keyArray);
-						//						System.out.println();
 					}
 
 					// This section of the code is designed to handle the FPS of the game
@@ -54,15 +69,7 @@ public class Display1 extends JFrame{
 				}
 			}
 		};
-		switchToGame();
 		test.start();
-	}
-	public void switchToGame() {
-		this.setContentPane(game);
-		repaint();
-	}
-	public Point getLocal() {
-		return this.getLocationOnScreen();
 	}
 	public void switchScreens() {
 		if(this.getContentPane() == game) {
@@ -75,14 +82,18 @@ public class Display1 extends JFrame{
 			return;
 		}
 	}
-	public void print(Object obj) {
-
+	public void updateManager() {
+		if(menu.start()) {
+			game = new Game_Window(menu.getTargetMap());
+			initiateGameLogic();
+			switchToGame();
+		}
 	}
 	private class listener implements MouseListener{
 
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
-
+			
 		}
 
 		@Override
@@ -97,31 +108,51 @@ public class Display1 extends JFrame{
 
 		@Override
 		public void mousePressed(MouseEvent arg0) {
-			//			System.out.println("This Program is a separate thread");
-			//			game.setMouseSampling(true);
-
+			if(game == null) {
+				updateManager();
+			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
-			//			switchScreens();
-			//			game.setMouseSampling(false);
-
 		}
 
+	}
+	public void setupMenuListeners() {
+		Stack<Object> listenAbles = menu.getListenAbles();
+		for(Object object: listenAbles) {
+			 if(object instanceof JButton) {
+				 JButton button = (JButton) object;
+				 button.addActionListener(new menuListener());
+			 }
+		}
 	}
 	private class boardListener implements KeyListener{
 
 		@Override
 		public void keyPressed(KeyEvent arg0) {
 			keyArray.add(arg0.getKeyCode());
+			switch(arg0.getKeyCode()) {
+			case 37:
+				break;
+			case 38:
+				break;
+			case 39:
+				break;
+			case 40:
+				break;
+			case 32:
+				// Space Key
+				break;
+			default:
+				System.out.println(arg0.getKeyCode());
+				break;
+			}
 		}
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
 			keyArray.remove(new Integer(arg0.getKeyCode()));
-//			System.out.println(arg0.getKeyCode());
-
 		}
 
 		@Override
@@ -129,5 +160,23 @@ public class Display1 extends JFrame{
 
 		}
 
+	}
+	private class menuListener implements ActionListener{
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			try {
+				if(((JButton)e.getSource()).getName() == "Load Button") {
+					if(new File("Maps/" + menu.getTargetMap()).exists()) {
+						game = new Game_Window(menu.getTargetMap());
+					}else {
+						
+					}
+					initiateGameLogic();
+					switchToGame();
+				}
+			}catch(Exception exp) {
+				System.out.println("The Exception is: " + exp);
+			}
+		}
 	}
 }
