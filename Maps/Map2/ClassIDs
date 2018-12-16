@@ -1,10 +1,1 @@
-
-0:Wall:0,:0,unwalkable,unseen,nottransparent,:
-1:Door:1,4,:0,walkable,unseen,transparent,unlocked,:
-2:Wall:2,:0,walkable,unseen,transparent,:
-3:Wall:3,:0,walkable,unseen,transparent,:
-4:Door:1,4,:1,unwalkable,unseen,transparent,locked,:
-5:Wall:5,:0,walkable,unseen,transparent,:
-6:Door:1,4,:1,unwalkable,unseen,transparent,unlocked,:
-7:Portal:1,:0,walkable,unseen,nottransparent,Map2,:
-8:Grass:0,:0,walkable,seen,nottransparent,:
+0:tiles.Grass:0:0,walkable,seen,transparent:

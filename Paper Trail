@@ -1,7 +1,7 @@
 So this is going to be a paper trail for how the code was created so that when I come back to this years 
 later I can remember what was done
 
-This will just be a list of how
+This will just be a list of how things have been done
 
 * Created the Game processing loop
 * Created the map
@@ -21,3 +21,10 @@ This will just be a list of how
 * created Inventory Class
 * created a Key to open a door
 * got the key to open the door
+* Got the immediate vision system to work. Still need the player memeory to work
+* Determined that the immediate vision system is only partially done. The system still needs to have some cases accounted for.
+* Finished the immediate visions system
+* got the Character Memory to work for one map only. Still need to get the player to save his memory of the level.
+* got the Inventory of the Character to show up on the screen. Will need to personalize the screen for the game. For now using the default system
+* fixed the system so that it will generate proper empty maps. Just realized that each entity will try and load a map for its self. That will be complicated I think
+ 
