@@ -14,6 +14,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import entities.Player;
+import systemManagers.FileManager;
+
+
 public class Display1 extends JFrame{
 
 	/**
@@ -188,6 +192,18 @@ public class Display1 extends JFrame{
 				if(((JButton)e.getSource()).getName() == "Load Button") {
 					if(new File("Maps/" + menu.getTargetMap()).exists()) {
 						game = new Game_Window(menu.getTargetMap());
+					}else {
+						
+					}
+					initiateGameLogic();
+					switchToGame();
+				}
+				if(((JButton)e.getSource()).getName() == "Character Load Button") {
+					if(new File("Saves/" + menu.getTargetCharacter() + ".rpgsave").exists()) {
+						Object[] loadInfo = FileManager.loadCharacter(menu.getTargetCharacter());
+						if(loadInfo[0] != null && loadInfo[0] != null) {
+							game = new Game_Window((String)loadInfo[0], (Player)loadInfo[1]);
+						}
 					}else {
 						
 					}

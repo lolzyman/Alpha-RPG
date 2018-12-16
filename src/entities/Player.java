@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 
 import tiles.Tile;
 
-public class Character extends Entity{
+public class Player extends Entity{
 
 	// Character Sizes. Irrelevant for future implementations
 	private final int XSIZE = 50, YSIZE = 50;
@@ -18,7 +18,7 @@ public class Character extends Entity{
 	private BufferedImage me;
 
 	// Constructor for the character that starts at the given map location
-	public Character(int x, int y){
+	public Player(int x, int y){
 		// Calls a method to set the location
 		setLocation(x, y);
 

@@ -18,23 +18,34 @@ import com.jgoodies.forms.layout.RowSpec;
 
 public class Menu_Window extends JPanel{
 	private static final long serialVersionUID = 1L;
-	private JTextField textField;
+	private JTextField mapName;
 	private JLabel PathMessage;
-	private JButton btnLoadMap;
+	private JButton loadMapButton;
 	private boolean ready = false;
 	private Stack<Object> listenAbles = new Stack<Object>();
+	private JTextField characterName;
+	private JLabel loadCharacterInfo;
+	private JButton loadCharacterButton;
 	public Menu_Window() {
 		this.setSize(500,500);
 		setLayout(new FormLayout(new ColumnSpec[] {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				FormSpecs.DEFAULT_COLSPEC,
 				FormSpecs.RELATED_GAP_COLSPEC,
-				FormSpecs.DEFAULT_COLSPEC,
+				ColumnSpec.decode("default:grow"),
 				FormSpecs.RELATED_GAP_COLSPEC,
-				FormSpecs.DEFAULT_COLSPEC,
-				FormSpecs.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),},
+				FormSpecs.DEFAULT_COLSPEC,},
 			new RowSpec[] {
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
@@ -50,33 +61,40 @@ public class Menu_Window extends JPanel{
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
 		
-		textField = new JTextField();
-		add(textField, "8, 8, fill, default");
-		textField.setColumns(10);
+		mapName = new JTextField();
+		add(mapName, "4, 8, fill, default");
+		mapName.setColumns(10);
 		
 		PathMessage = new JLabel("Please select Map Name");
-		add(PathMessage, "8, 10, left, default");
-		btnLoadMap = new JButton("Load Map");
-		btnLoadMap.setName("Load Button");
-		listenAbles.add(btnLoadMap);
-		add(btnLoadMap, "8, 14");
+		add(PathMessage, "4, 10, left, default");
+		
+		loadMapButton = new JButton("Load Map");
+		loadMapButton.setName("Load Button");
+		listenAbles.add(loadMapButton);
+		add(loadMapButton, "4, 14");
+		
+		characterName = new JTextField();
+		add(characterName, "4, 18, fill, default");
+		characterName.setColumns(10);
+		
+		loadCharacterInfo = new JLabel("Please Enter A Character Name");
+		add(loadCharacterInfo, "4, 20");
+		
+		loadCharacterButton = new JButton("New button");
+		loadCharacterButton.setName("Character Load Button");
+		listenAbles.add(loadCharacterButton);
+		add(loadCharacterButton, "4, 24");
 	}
 	public boolean start() {
 		return ready;
 	}
 	public String getTargetMap() {
-		return textField.getText();
+		return mapName.getText();
+	}
+	public String getTargetCharacter() {
+		return characterName.getText();
 	}
 	public Stack<Object> getListenAbles(){
 		return listenAbles;
-	}
-	private class Listener implements ActionListener{
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			if(e.getSource().equals(btnLoadMap)){
-				ready = true;
-			}
-		}
-		
 	}
 }

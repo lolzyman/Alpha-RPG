@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.Queue;
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageOutputStream;
 
+import javax.imageio.ImageIO;
+
+import entities.Player;
+import entities.Item;
 import tiles.Tile;
 
 public class FileManager {
@@ -22,7 +24,75 @@ public class FileManager {
 	  //*********************************\\
 	 //**************Loaders**************\\
 	//*************************************\\
-	
+	public static Object[] loadCharacter(String characterName) {
+		Object[] objects = new Object[2];
+		Player loadedCharacter = null;
+		
+		File character = new File("Saves/" + characterName + ".rpgsave");
+		if(character.exists()) {
+			try {
+			String[] charInfo = readCharFile(character);
+			objects[0] = charInfo[0];
+			String[] location = charInfo[1].split(",");
+			int x = Integer.parseInt(location[0]);
+			int y = Integer.parseInt(location[1]);
+			loadedCharacter = new Player(x,y);
+			loadedCharacter.health = Integer.parseInt(charInfo[2]);
+			String[] items = new String[charInfo.length-3];
+			for(int i = 3; i < charInfo.length;i++) {
+				items[i-3] = charInfo[i];
+			}
+			initializeCharInventory(loadedCharacter,items);
+			}catch(Exception e) {
+				System.out.println("The Character save File is currpt");
+			}
+		}
+		
+		objects[1] = loadedCharacter;
+		return objects;
+	}
+	public static void initializeCharInventory(Player character,String...strings) {
+		for(String string:strings) {
+			try {
+				Item item = new Item();
+				String[] itemInfo = string.split(",");
+				item.setType(Integer.parseInt(itemInfo[0]));
+				item.setID(itemInfo[1]);
+				item.setQuantity(Integer.parseInt(itemInfo[2]));
+				character.getInventory().addItem(item);
+			}catch(Exception e) {
+				System.out.println("Couldn't Load the Characters Item: " + e);
+			}
+		}
+	}
+	public static String[] readCharFile(File file) {
+		String[] characterInformation = null;
+		try {
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line;
+		Queue<String> charData = new LinkedList<String>();
+		while((line = reader.readLine()) != null) {
+			String temp;
+			if(!line.equals("")){
+				temp = line.substring(0, 1);
+			}else {
+				temp = "/";
+			}
+			if(!temp.equals("/")  && !temp.equals("#") && !temp.equals("%") && !temp.equals("*"))
+			charData.add(removeWhiteSpace(line));
+		}
+		characterInformation = new String[charData.size()];
+		int index = 0;
+		while(!charData.isEmpty()) {
+			characterInformation[index] = charData.poll();
+			index++;
+		}
+		
+		}catch(Exception e) {
+			System.out.println("The Character Loading didn't work: " + e);
+		}
+		return characterInformation;
+	}
 	public static BufferedImage loadImage(String location) {
 		try {
 			return ImageIO.read(new File(location));
@@ -292,7 +362,7 @@ public class FileManager {
 			output += string;
 			output += ",";
 		}
-		return output;
+		return output.substring(0, output.length()-1);
 	}
 	/**
 	 * Generates a class Identifier from a Tile input

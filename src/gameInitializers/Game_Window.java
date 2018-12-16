@@ -12,7 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import entities.Character;
+import entities.Player;
 import entities.Item;
 import systemManagers.FileManager;
 import systemManagers.TerrainGenerator;
@@ -28,7 +28,7 @@ public class Game_Window extends JPanel{
 	private static final long serialVersionUID = 1L;
 
 	// This is the Character that has the ability to walk around the map
-	private Character me = new Character(4,4);
+	private Player me;
 
 	// This is the terrainMap which has the background tiles.
 	private Tile[][] terrainMap;
@@ -51,6 +51,39 @@ public class Game_Window extends JPanel{
 	// The work around is used because I don't know how to use the KeyboardListener as interrupts 
 	public Game_Window(String mapName) {
 
+		me = new Player(4,4);
+		//Sets the targetMap to the mapName passed to the constructor
+		targetMap = mapName;
+
+		//Sets the JPanel to be an 11 by 11 tile size with 50 by 50 pixel tiles
+		this.setSize(550,550);
+		//Sets the JPanel as visible
+		this.setVisible(true);
+		// Loads the Terrain Map from a default condition. Will need to be modified to load previous saves.
+		initTerrainMap();
+
+		characterMemory = new int[terrainMap.length][terrainMap[0].length];
+		//Arrays.setAll(characterMemory, null);
+		for(int y = 0; y < characterMemory.length; y++) {
+			for(int x = 0; x < characterMemory[x].length; x++) {
+				characterMemory[y][x] = -1;
+			}
+		}
+		
+		memoryImages = FileManager.loadTilesFromIndex(FileManager.loadImage("Maps/Map1/CharacterMemory.png"));
+		
+		// Repaints the JPanel
+		repaint();
+
+		Item testKey = new Item();
+		testKey.setType(Item.KEY);
+		testKey.setID("Door1");
+		terrainMap[2][1].getInventory().addItem(testKey);
+	}
+	
+	public Game_Window(String mapName, Player loadedCharacter) {
+
+		me = loadedCharacter;
 		//Sets the targetMap to the mapName passed to the constructor
 		targetMap = mapName;
 

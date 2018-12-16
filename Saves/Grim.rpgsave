@@ -1,0 +1,10 @@
+/This can be used as a comment
+/ Map name
+Map1
+/ Location of the character on the map
+1,1
+/ Health of the character
+100
+/ Items of the Character
+/ Type, ID, Quantity,
+0,Door1,1
