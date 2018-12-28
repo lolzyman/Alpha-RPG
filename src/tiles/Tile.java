@@ -4,11 +4,10 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 
-import javax.imageio.ImageIO;
-
 import entities.Entity;
 import entities.Inventory;
 import entities.Item;
+import entities.Loot;
 import systemManagers.FileManager;
 
 
@@ -23,6 +22,8 @@ public class Tile {
 	private boolean seen = false;
 	private boolean transparent = false;
 	private Inventory inventory = new Inventory();
+	private Loot loot = null;
+	private BufferedImage lootIcon;
 	public Tile() {
 		Graphics2D g2;
 		BufferedImage newImage = new BufferedImage(50,50, BufferedImage.TYPE_INT_RGB);
@@ -115,6 +116,9 @@ public class Tile {
 		try {
 			//g2.drawImage(mImage, x*50, y*50, null);
 			g2.drawImage(images[currentImage], (mapX - screenX + windowX)* 50, (mapY - screenY + windowY) * 50, null);
+			if(loot != null) {
+				g2.drawImage(lootIcon, (mapX - screenX + windowX)* 50, (mapY - screenY + windowY) * 50, null);
+			}
 		}catch(NullPointerException e) {
 
 			BufferedImage[] newImages = new BufferedImage[currentImage+1];
@@ -153,12 +157,28 @@ public class Tile {
 		return para;
 	}
 	public void interact(Entity being) {
-		LinkedList<Item> keys = inventory.getKeys();
-		while(!keys.isEmpty()) {
-			being.getInventory().addItem(keys.pollFirst());
+		if(loot != null) {
+			being.getInventory().merge(loot.getInventory());
+			loot = null;
+			System.out.print("Loot was collected");
 		}
 	}
 	public boolean isWalkAble(Entity being) {
 		return false;
+	}
+	public void addLoot(Item item) {
+		if(loot == null) {
+			loot = new Loot();
+		}
+		loot.addItem(item);
+	}
+	public Loot getLoot() {
+		return loot;
+	}
+	public void addDoor() {
+		
+	}
+	public void setLootIcon(BufferedImage icon) {
+		lootIcon = icon;
 	}
 }

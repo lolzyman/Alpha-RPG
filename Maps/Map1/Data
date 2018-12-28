@@ -1,3 +1,3 @@
-7,11:TestItem:key,Door1
+7,11:TestItem:key,Door1,0
 5,10:TestDoor:Door0,unlocked
 4,13:TestDoor:Door1,locked

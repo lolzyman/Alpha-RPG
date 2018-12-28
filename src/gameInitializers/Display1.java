@@ -199,19 +199,20 @@ public class Display1 extends JFrame{
 					switchToGame();
 				}
 				if(((JButton)e.getSource()).getName() == "Character Load Button") {
-					if(new File("Saves/" + menu.getTargetCharacter() + ".rpgsave").exists()) {
-						Object[] loadInfo = FileManager.loadCharacter(menu.getTargetCharacter());
-						if(loadInfo[0] != null && loadInfo[0] != null) {
-							game = new Game_Window((String)loadInfo[0], (Player)loadInfo[1]);
-						}
+					String characterID = menu.getTargetCharacter();
+					Object[] loadInfo = FileManager.loadCharacter(characterID);
+					if(loadInfo[0] != null && loadInfo[0] != null) {
+						Player player = (Player)loadInfo[1];
+						player.setName(characterID);
+						game = new Game_Window((String)loadInfo[0], (Player)loadInfo[1]);
 					}else {
-						
+
 					}
 					initiateGameLogic();
 					switchToGame();
 				}
 			}catch(Exception exp) {
-				System.out.println("Display1");
+				System.out.println("Display1: MenuListener : Action Performed");
 				System.out.println("The Exception is: " + exp);
 			}
 		}

@@ -13,10 +13,13 @@ public class Player extends Entity{
 	// The position of the character in the game
 	private int xPos, yPos;
 
-
 	// The Image for the Character
 	private BufferedImage me;
 
+	private String name;
+	
+	private String uniqueId;
+	
 	// Constructor for the character that starts at the given map location
 	public Player(int x, int y){
 		// Calls a method to set the location
@@ -84,5 +87,18 @@ public class Player extends Entity{
 			return true;
 		}
 		return false;
+	}
+	
+	public String getUniqueID() {
+		return uniqueId;
+	}
+	
+	public int getHealth() {
+		return health;
+	}
+	
+	public void setName(String characterName) {
+		name = characterName;
+		uniqueId = name;
 	}
 }

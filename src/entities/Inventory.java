@@ -2,8 +2,8 @@ package entities;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -29,11 +29,60 @@ public class Inventory {
 		}
 		return null;
 	}
+	public boolean hasKeys() {
+		if(keys != null && keys.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
 	public boolean hasWeapon() {
 		return false;
 	}
 	public boolean hasConsumable() {
 		return false;
+	}
+	public Item[] listToArray(LinkedList<Item> list) {
+		Item[] items = null;
+		if(list != null) {
+			Object[] objects = list.toArray();
+			items = new Item[objects.length];
+			for(int i = 0; i < objects.length;i++) {
+				items[i] = (Item)objects[i];
+			}
+		}
+		return items;
+	}
+	public Item[][] removeAllInventoy() {
+		Item[][] items = new Item[2][];
+		items[0] = listToArray(keys);
+		items[1] = listToArray(materials);
+		keys = null;
+		materials = null;
+		return items;
+	}
+	public Queue<Item> removeAllInventory(){
+		Queue<Item> linkedList = new LinkedList<Item>();
+		if(keys != null) {
+			for(Item item : keys) {
+				linkedList.add(item);
+			}
+		}
+		if(materials != null) {
+			for(Item item:materials) {
+				linkedList.add(item);
+			}
+		}
+		return linkedList;
+	}
+	public void merge(Inventory that) {
+		Item[][] allItems = that.removeAllInventoy();
+		for(Item[] itemType: allItems) {
+			if(itemType != null) {
+				for(Item item: itemType) {
+					this.addItem(item);
+				}
+			}
+		}
 	}
 	public void addItem(Item item) {
 		switch(item.getType()) {

@@ -1,5 +1,4 @@
 package gameInitializers;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -70,7 +69,7 @@ public class Game_Window extends JPanel{
 			}
 		}
 		
-		memoryImages = FileManager.loadTilesFromIndex(FileManager.loadImage("Maps/Map1/CharacterMemory.png"));
+		memoryImages = FileManager.loadTilesFromIndex(FileManager.loadImage("Maps/Map2" /*+ targetMap */ +"/CharacterMemory.png"));
 		
 		// Repaints the JPanel
 		repaint();
@@ -94,24 +93,27 @@ public class Game_Window extends JPanel{
 		// Loads the Terrain Map from a default condition. Will need to be modified to load previous saves.
 		initTerrainMap();
 
-		characterMemory = new int[terrainMap.length][terrainMap[0].length];
-		//Arrays.setAll(characterMemory, null);
-		for(int y = 0; y < characterMemory.length; y++) {
-			for(int x = 0; x < characterMemory[x].length; x++) {
-				characterMemory[y][x] = -1;
+		characterMemory = FileManager.loadMemory(me.getUniqueID(), targetMap);
+		if(characterMemory == null) {
+			characterMemory = new int[terrainMap.length][terrainMap[0].length];
+			for(int y = 0; y < characterMemory.length; y++) {
+				for(int x = 0; x < characterMemory[x].length; x++) {
+					characterMemory[y][x] = -1;
+				}
 			}
 		}
-		
 		memoryImages = FileManager.loadTilesFromIndex(FileManager.loadImage("Maps/Map1/CharacterMemory.png"));
 		
+		moveScreen();
 		// Repaints the JPanel
 		repaint();
 
 		Item testKey = new Item();
 		testKey.setType(Item.KEY);
 		testKey.setID("Door1");
-		terrainMap[2][1].getInventory().addItem(testKey);
+		terrainMap[2][1].addLoot(testKey);
 	}
+	
 	@Override
 	public void paint(Graphics g) {
 		//Calls the parent paint to prevent errors
@@ -127,6 +129,7 @@ public class Game_Window extends JPanel{
 
 		exploreVision(g2);
 		// Draws the Character on the Map
+		
 		// This will need to be changed to draw all the entities that can roam the map
 		me.paint(g2, screenX, screenY);
 
@@ -171,6 +174,7 @@ public class Game_Window extends JPanel{
 		}
 		terrainMap[y][x].interact(me);
 	}
+	
 	public void loadMap(String targetMap) {
 		me.setLocation(1, 1);
 		this.targetMap = targetMap;
@@ -199,8 +203,6 @@ public class Game_Window extends JPanel{
 		if(y > terrainMap.length-6) {
 			down = terrainMap.length - y - 1;
 		}
-		int xCenter = left;
-		int yCenter = up;
 
 		int yRange = 1 + up + down;
 		int xRange = 1 + left + right;
@@ -211,7 +213,7 @@ public class Game_Window extends JPanel{
 		// You are going to have too much fun with this
 		int[][] walkAble = new int[yRange][xRange];
 
-		PriorityQueue<int[]> visionQueue = new PriorityQueue(new visionComparator());
+		PriorityQueue<int[]> visionQueue = new PriorityQueue<int[]>(new visionComparator());
 		for(int yIndex = -up; yIndex < down + 1; yIndex++) {
 			for(int xIndex = -left; xIndex < right + 1; xIndex++) {
 				int[] queueEntry = {yIndex,xIndex, (int)(Math.pow(yIndex,2) + Math.pow(xIndex,2))};
@@ -285,100 +287,37 @@ public class Game_Window extends JPanel{
 						if(xIndex > 0) {
 							Tile tile2 = pocket[yIndex + up + 1][xIndex + left - 1];
 							if(seen[yIndex + up + 1][xIndex + left - 1] && tile2.getTransparent()) {
-//								tile.setSeen();
 								seen[yIndex + up][xIndex + left] = true;
 								characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 							}
 						}else {
 							Tile tile2 = pocket[yIndex + up - 1][xIndex + left + 1];
 							if(seen[yIndex + up - 1][xIndex + left + 1] && tile2.getTransparent()) {
-//								tile.setSeen();
 								seen[yIndex + up][xIndex + left] = true;
 								characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 							}
 						}
 					}else if(yIndex > 0 && xIndex > 0) {
 						//Check Quadrant II
-						Tile tile2 = pocket[yIndex + up - 1][xIndex + left - 1];
-						Tile tile3;
-						boolean seen3;
-						boolean seen4;
-						if(xIndex > yIndex) {
-							tile3 = pocket[yIndex + up][xIndex + left - 1];
-							seen3 = seen[yIndex + up][xIndex + left - 1];
-							seen4 = seen[yIndex + up - 1][xIndex + left];
-							
-						}else {
-							tile3 = pocket[yIndex + up - 1][xIndex + left];
-							seen3 = seen[yIndex + up - 1][xIndex + left];
-							seen4 = seen[yIndex + up][xIndex + left - 1];
-						}
-						if(seen[yIndex + up - 1][xIndex + left - 1] && tile2.getTransparent()) {
+						if(seen[yIndex + up - 1][xIndex + left - 1] && pocket[yIndex + up - 1][xIndex + left - 1].getTransparent()) {
 							seen[yIndex + up][xIndex + left] = true;
 							characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 						}
 					}else if(yIndex < 0 && xIndex > 0) {
 						//Check Quadrant I
-						Tile tile2 = pocket[yIndex + up + 1][xIndex + left - 1];
-						Tile tile3;
-						boolean seen3;
-						boolean seen4;
-						if(xIndex < -yIndex) {
-							tile3 = pocket[yIndex + up][xIndex + left - 1];
-							seen3 = seen[yIndex + up][xIndex + left - 1];
-							seen4 = seen[yIndex + up + 1][xIndex + left];
-							
-						}else {
-							tile3 = pocket[yIndex + up + 1][xIndex + left];
-							seen3 = seen[yIndex + up + 1][xIndex + left];
-							seen4 = seen[yIndex + up][xIndex + left - 1];
-						}
-						if(seen[yIndex + up + 1][xIndex + left - 1] && tile2.getTransparent()) {
+						if(seen[yIndex + up + 1][xIndex + left - 1] && pocket[yIndex + up + 1][xIndex + left - 1].getTransparent()) {
 							seen[yIndex + up][xIndex + left] = true;
 							characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 						}
 					}else if(yIndex > 0 && xIndex < 0) {
 						//Check Quadrant III
-						Tile tile2 = pocket[yIndex + up - 1][xIndex + left + 1];
-						Tile tile3;
-						boolean seen3;
-						boolean seen4;
-						if(-xIndex > yIndex) {
-							tile3 = pocket[yIndex + up][xIndex + left + 1];
-							seen3 = seen[yIndex + up][xIndex + left + 1];
-							seen4 = seen[yIndex + up - 1][xIndex + left];
-							
-						}else {
-							tile3 = pocket[yIndex + up - 1][xIndex + left];
-							seen3 = seen[yIndex + up - 1][xIndex + left];
-							seen4 = seen[yIndex + up][xIndex + left + 1];
-						}
-						if(seen[yIndex + up - 1][xIndex + left + 1] && tile2.getTransparent()) {
+						if(seen[yIndex + up - 1][xIndex + left + 1] && pocket[yIndex + up - 1][xIndex + left + 1].getTransparent()) {
 							seen[yIndex + up][xIndex + left] = true;
 							characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 						}
-						
-						
 					}else if(yIndex < 0 && xIndex < 0) {
 						//Check Quadrant IV
-						/*
-						
-						*/
-						Tile tile2 = pocket[yIndex + up + 1][xIndex + left + 1];
-						Tile tile3;
-						boolean seen3;
-						boolean seen4;
-						if(-xIndex < -yIndex) {
-							tile3 = pocket[yIndex + up][xIndex + left + 1];
-							seen3 = seen[yIndex + up][xIndex + left + 1];
-							seen4 = seen[yIndex + up + 1][xIndex + left];
-							
-						}else {
-							tile3 = pocket[yIndex + up + 1][xIndex + left];
-							seen3 = seen[yIndex + up + 1][xIndex + left];
-							seen4 = seen[yIndex + up][xIndex + left + 1];
-						}
-						if(seen[yIndex + up + 1][xIndex + left + 1] && tile2.getTransparent()) {
+						if(seen[yIndex + up + 1][xIndex + left + 1] && pocket[yIndex + up + 1][xIndex + left + 1].getTransparent()) {
 							seen[yIndex + up][xIndex + left] = true;
 							characterMemory[y + yIndex][x + xIndex] = tile.drawTile(g2, screenX, screenY, 6, 6);
 						}
@@ -432,6 +371,8 @@ public class Game_Window extends JPanel{
 			break;
 		case 83:
 			FileManager.saveTerrainMap(terrainMap, targetMap);
+			FileManager.saveCharacter(me, targetMap);
+			FileManager.saveCharacterMemeory(me.getUniqueID(), targetMap, characterMemory);
 			System.exit(0);
 		case 32:
 			interactWithTile(0,0);

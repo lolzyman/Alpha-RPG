@@ -6,3 +6,4 @@
 5:tiles.Wall:5:0,walkable,unseen,transparent
 6:tiles.Door:1,4:1,unwalkable,unseen,transparent,locked,Door1
 7:tiles.Portal:1:0,walkable,unseen,nottransparent,Map2
+8:tiles.Door:1,4:0,walkable,unseen,transparent,unlocked,Door1:
